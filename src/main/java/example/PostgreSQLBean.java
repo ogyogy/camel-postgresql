@@ -14,25 +14,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.ArrayList;
 
-/**
- * A bean which we use in the route
- */
-public class HelloBean implements Hello {
-
-    private String say = "Hello World";
-
-    public String hello() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return say + " at " + sdf.format(new Date());
-    }
-
-    public String getSay() {
-        return say;
-    }
-
-    public void setSay(String say) {
-        this.say = say;
-    }
+public class PostgreSQLBean {
 
     public Connection connect() {
         Connection conn = null;
@@ -46,14 +28,15 @@ public class HelloBean implements Hello {
         }
     }
 
-    public void insert() {
+    public void insert(Map<String, Object> data) {
         try {
             Class.forName("org.postgresql.Driver");
             Connection conn = connect();
             Statement stmt = conn.createStatement();
             Date date = new Date();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmss");
-            String query = "insert into test (name) values ('" + sdf.format(date) + "')";
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            String query = String.format("insert into test (name, color, timestamp) values ('%s', '%s', '%s')",
+                    (String) data.get("name"), (String) data.get("color"), sdf.format(date));
             int row_count = stmt.executeUpdate(query);
             stmt.close();
             conn.close();
@@ -74,6 +57,8 @@ public class HelloBean implements Hello {
                 HashMap map = new HashMap();
                 map.clear();
                 map.put("name", rs.getString("name"));
+                map.put("color", rs.getString("color"));
+                map.put("timestamp", rs.getString("timestamp"));
                 list.add(map);
             }
             rs.close();

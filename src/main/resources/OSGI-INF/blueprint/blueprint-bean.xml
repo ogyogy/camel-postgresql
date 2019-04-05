@@ -3,17 +3,22 @@
          http://www.osgi.org/xmlns/blueprint/v1.0.0 https://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
          http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd
          http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0 http://aries.apache.org/schemas/blueprint-cm/blueprint-cm-1.1.0.xsd">
-  <bean id="helloBean" class="example.HelloBean" />
+  <bean id="postgreSQLBean" class="example.PostgreSQLBean" />
   <camelContext id="blueprint-bean-context" xmlns="http://camel.apache.org/schema/blueprint">
+    <dataFormats>
+      <json id="json" library="Jackson" />
+      <xmljson id="xmljson" />
+      <xmljson id="xmljsonWithOptions" forceTopLevelObject="true" trimSpaces="true" rootName="newRoot" skipNamespaces="true" removeNamespacePrefixes="true" expandableProperties="d e" />
+    </dataFormats>
     <route id="route-postgresql">
-      <from uri="timer:foo?period=5000" />
+      <from uri="file:data/input?noop=true&amp;delay=5000" />
+      <marshal ref="xmljson" />
+      <unmarshal ref="json" />
+      <to uri="bean:postgreSQLBean?method=insert(${body[0]})" />
       <setBody>
-        <method ref="helloBean" method="insert" />
+        <method ref="postgreSQLBean" method="select" />
       </setBody>
-      <setBody>
-        <method ref="helloBean" method="select" />
-      </setBody>
-      <log message="body: ${body}" />
+      <log message="The message contains ${body}" />
       <to uri="mock:result" />
     </route>
   </camelContext>
